@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ANKH：金字塔的密語 | 官方網站</title>
+  <meta name="description" content="《ANKH：金字塔的密語》— 無戰鬥的埃及遺跡解謎冒險。探索神祇試煉、破解古老機關、揭開金字塔的祕密。" />
+
+  <!-- Google Fonts（亦可離線改為本地字型） -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#0b0a08; /* 夜黑 */
+      --sand:#c2a66b; /* 沙色 */
+      --gold:#d4b571; /* 金色 */
+      --blood:#a31d1d; /* 深紅 */
+      --ink:#111111;  /* 墨黑 */
+      --papyrus:#f2e7c9; /* 羊皮紙底色 */
+      --accent:#e5c77a; /* 高光金 */
+    }
+
+    /* 基礎排版 */
+    html,body{height:100%;}
+    body{
+      margin:0; color:#eee; background:var(--bg);
+      font-family: 'Noto Sans TC', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      line-height:1.6; overflow-x:hidden;
+    }
+    h1,h2,h3,h4{font-family:'Cinzel', serif; letter-spacing:.02em;}
+
+    /* 星空＋沙塵背景（不依賴圖片） */
+    body::before, body::after{
+      content:""; position:fixed; inset:0; pointer-events:none; z-index:-2;
+      background:
+        radial-gradient(1000px 600px at 70% -10%, rgba(228,203,131,.18), transparent 60%),
+        radial-gradient(800px 500px at -10% 20%, rgba(163,29,29,.25), transparent 60%),
+        radial-gradient(1200px 700px at 120% 120%, rgba(212,181,113,.18), transparent 60%),
+        linear-gradient(#0b0a08, #0b0a08);
+    }
+    body::after{
+      z-index:-1; opacity:.35; mix-blend-mode:screen;
+      background-image: repeating-linear-gradient( 0deg, rgba(255,255,255,.02) 0 2px, transparent 2px 4px);
+    }
+
+    /* 金色紋框（埃及 HUD 感） */
+    .frame{ position:relative; }
+    .frame::before, .frame::after{
+      content:""; position:absolute; inset:0; pointer-events:none;
+      background:
+        linear-gradient(90deg, transparent, rgba(212,181,113,.25), transparent) top/100% 1px no-repeat,
+        linear-gradient(90deg, transparent, rgba(212,181,113,.25), transparent) bottom/100% 1px no-repeat,
+        linear-gradient(0deg, transparent, rgba(212,181,113,.25), transparent) left/1px 100% no-repeat,
+        linear-gradient(0deg, transparent, rgba(212,181,113,.25), transparent) right/1px 100% no-repeat;
+    }
+
+    /* 導覽列 */
+    .nav{
+      position:sticky; top:0; z-index:50; backdrop-filter:saturate(120%) blur(6px);
+      background:linear-gradient(rgba(11,10,8,.88), rgba(11,10,8,.65));
+      border-bottom:1px solid rgba(212,181,113,.25);
+    }
+    .container{ width:min(1100px, 92vw); margin:0 auto; }
+    .nav-row{ display:flex; align-items:center; justify-content:space-between; padding:14px 0; }
+    .brand{ display:flex; gap:12px; align-items:center; text-decoration:none; color:var(--accent); }
+    .brand .logo{ width:28px; height:28px; }
+    .brand span{ font-family:'Cinzel', serif; font-weight:900; letter-spacing:.06em; }
+    .menu a{ color:#eee; text-decoration:none; margin-left:18px; padding:6px 8px; border-radius:8px; }
+    .menu a:hover{ background:rgba(212,181,113,.12); color:var(--accent); }
+    .cta{ border:1px solid rgba(212,181,113,.4); color:var(--accent) !important; }
+
+    /* 英雄區 */
+    .hero{
+      position:relative; padding:100px 0 80px; text-align:center; overflow:hidden;
+    }
+    .hero h1{ font-size:clamp(28px, 5vw, 54px); margin:0 0 10px; color:var(--accent); text-shadow:0 0 20px rgba(212,181,113,.15); }
+    .hero p{ color:#ddd; max-width:780px; margin:0 auto 26px; }
+    .hero .buttons{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .btn{ display:inline-flex; align-items:center; gap:10px; padding:12px 16px; border-radius:12px; text-decoration:none; color:#111; background:var(--accent); font-weight:700; transition:.2s;
+      border:1px solid rgba(0,0,0,.15);
+      box-shadow:0 8px 20px rgba(229,199,122,.15), inset 0 0 0 1px rgba(255,255,255,.12);
+    }
+    .btn:hover{ transform:translateY(-1px); box-shadow:0 10px 24px rgba(229,199,122,.22); }
+    .btn.secondary{ background:transparent; color:var(--accent); border:1px solid rgba(212,181,113,.45); }
+
+    /* 裝飾：發光安卡 & 沙壩 */
+    .ankh{ position:absolute; inset:auto 50% -120px auto; transform:translateX(-50%); opacity:.15; }
+
+    /* 特徵區塊 */
+    section{ padding:70px 0; }
+    .grid{ display:grid; grid-template-columns:repeat(12, 1fr); gap:22px; }
+    .card{ grid-column:span 4; background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); border:1px solid rgba(212,181,113,.18); border-radius:18px; padding:18px; }
+    .card h3{ margin:6px 0 6px; color:var(--accent); }
+    .card p{ margin:0; color:#ddd; }
+    @media (max-width:900px){ .card{ grid-column:span 6; } }
+    @media (max-width:640px){ .card{ grid-column:span 12; } }
+
+    /* 羊皮紙段落（世界觀/故事） */
+    .papyrus{ background:radial-gradient(100% 120% at 50% 0%, rgba(229,199,122,.05), rgba(163,29,29,.04) 60%, transparent 100%); }
+    .scroll{
+      background:var(--papyrus);
+      color:#222; border:1px solid #b89f63; border-radius:18px; padding:22px; position:relative;
+      box-shadow: inset 0 0 20px rgba(0,0,0,.15), 0 12px 30px rgba(0,0,0,.25);
+    }
+    .scroll h3{ color:#6b4d12; margin:6px 0 8px; }
+    .seal{ position:absolute; right:18px; bottom:-14px; width:70px; height:70px; background:
+      radial-gradient(circle at 30% 30%, #c93, #922);
+      border-radius:999px; box-shadow:0 6px 20px rgba(0,0,0,.4);
+      display:grid; place-items:center; color:#ffe7b7; font-family:'Cinzel', serif; font-weight:900; letter-spacing:.1em;
+    }
+
+    /* 關卡展示 */
+    .level{ display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:center; }
+    .level .panel{ border:1px solid rgba(212,181,113,.18); border-radius:16px; padding:18px; }
+    .badge{ display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; font-size:13px; background:rgba(212,181,113,.12); color:var(--accent); border:1px solid rgba(212,181,113,.25); }
+    @media (max-width:880px){ .level{ grid-template-columns: 1fr; } }
+
+    /* 關卡圖片樣式 */
+    .level-media{ margin-top:12px; }
+    .level-media img{ width:100%; height:auto; display:block; border-radius:14px; border:1px solid rgba(212,181,113,.18); box-shadow:0 10px 24px rgba(0,0,0,.35); }
+    .caption{ font-size:13px; color:#ccc; margin-top:6px; opacity:.9; }
+
+    /* 下載／社群 */
+    .cta-row{ display:flex; gap:14px; flex-wrap:wrap; }
+
+    /* 頁腳 */
+    footer{ padding:40px 0 60px; color:#bbb; text-align:center; border-top:1px solid rgba(212,181,113,.18); }
+    .small{ font-size:13px; opacity:.9; }
+
+    /* 小動畫 */
+    .reveal{ opacity:0; transform:translateY(8px); transition:.4s ease; }
+    .reveal.active{ opacity:1; transform:none; }
+
+    /* Eye of Horus SVG 基礎樣式 */
+    .icon{ width:20px; height:20px; fill:currentColor; }
+  </style>
+</head>
+<body>
+  <!-- 導覽列 -->
+  <nav class="nav">
+    <div class="container nav-row">
+      <a class="brand" href="#top" aria-label="ANKH 官方網站首頁">
+        <!-- 小安卡圖示 -->
+        <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><path fill="currentColor" d="M31 13c0-5 5-9 11-9s11 4 11 9c0 6-5 11-11 11h-4v-4h4c3 0 7-3 7-7s-4-7-7-7-7 3-7 7c0 4 3 7 7 7v4c-8 0-14-6-14-14Zm3 20h-8v-8h8v-6h8v6h8v8h-8v20h-8V33Z"/></svg>
+        <span>ANKH：金字塔的密語</span>
+      </a>
+      <div class="menu">
+        <a href="#features">特色</a>
+        <a href="#lore">世界觀</a>
+        <a href="#levels">關卡</a>
+        <a href="#download" class="cta">下載 / 聯繫</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 英雄區 -->
+  <header id="top" class="hero frame">
+    <div class="container">
+      <h1 class="reveal">探索神祇的試煉，聆聽金字塔的低語</h1>
+      <p class="reveal" style="transition-delay:.06s">《ANKH：金字塔的密語》是一款<strong>無戰鬥</strong>的埃及遺跡解謎冒險。你將扮演年輕考古學家，依循神像上的謎語與場景線索，穿越充滿機關與陷阱的試煉。</p>
+      <div class="buttons reveal" style="transition-delay:.12s">
+        <a class="btn" href="#download"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.17l3.59-3.58L17 11l-5 5-5-5 1.41-1.41L11 13.17V3h1zM5 19h14v2H5z"/></svg> 立刻下載試玩</a>
+        <a class="btn secondary" href="#trailer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> 觀看預告</a>
+      </div>
+    </div>
+    <!-- 發光安卡（裝飾） -->
+    <svg class="ankh" viewBox="0 0 200 300" width="340" height="520" aria-hidden="true">
+      <defs>
+        <radialGradient id="g" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stop-color="#fff" stop-opacity=".35" />
+          <stop offset="60%" stop-color="#e5c77a" stop-opacity=".15" />
+          <stop offset="100%" stop-color="#e5c77a" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <g fill="url(#g)">
+        <ellipse cx="100" cy="70" rx="70" ry="50" />
+        <rect x="85" y="120" width="30" height="130" rx="6" />
+        <rect x="40" y="160" width="120" height="26" rx="8" />
+      </g>
+    </svg>
+  </header>
+
+  <!-- 特色 -->
+  <section id="features" class="container">
+    <h2 class="reveal">遊戲特色</h2>
+    <div class="grid">
+      <div class="card reveal">
+        <h3>埃及神祇機關</h3>
+        <p>每一關以不同神祇（如托特、賽特、孔蘇、阿努比斯、拉）設計關鍵謎題與視覺語彙，讓解謎與世界觀緊密對應。</p>
+      </div>
+      <div class="card reveal" style="transition-delay:.06s">
+        <h3>觀察 × 推理 × 記憶</h3>
+        <p>從雕像謎語、壁畫線索到地板陷阱，玩家需要綜合判斷並做出正確路徑選擇，踩錯就得重新來過。</p>
+      </div>
+      <div class="card reveal" style="transition-delay:.12s">
+        <h3>美術與介面</h3>
+        <p>羊皮紙資訊面板，營造古文明×神秘學的視覺體驗。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 世界觀 / 故事（羊皮紙卷） -->
+  <section id="lore" class="papyrus">
+    <div class="container">
+      <div class="scroll reveal">
+        <h3>前言</h3>
+        <p>在埃及西部的沙丘下，考古團隊意外發現一條被沙埋的古老通道， 據推測，它通往卡夫拉金字塔未被記錄的副墓室。 然而在初步探勘時發生塌陷，行動被迫中止。 年輕的考古學家對此結論並不滿意。 他在結構圖中發現奇異的符號與方向，似乎暗示著被掩蓋的歷史。 當夜，他違反規定，獨自返回現場。 在無人的風沙中，他點亮探照燈，勇闖金字塔。
+傳聞中，唯有通過—— 托特的智慧、賽特的混亂、孔蘇的循環、阿努比斯的審判 以及拉的啟示， 方能抵達金字塔的終點</p>
+        <div class="seal">ANKH</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 關卡展示 -->
+  <section id="levels" class="container">
+    <h2 class="reveal">試煉一覽</h2>
+
+    <div class="level" style="grid-template-columns: 280px 1fr;">
+      <!-- 左側：關卡按鈕 -->
+      <div class="panel reveal">
+        <div class="level-tabs" style="display:grid; gap:10px;">
+          <button class="btn secondary level-tab" data-level="1">第一關 · 托特</button>
+          <button class="btn secondary level-tab" data-level="2">第二關 · 賽特</button>
+          <button class="btn secondary level-tab" data-level="3">第三關 · 孔蘇</button>
+          <button class="btn secondary level-tab" data-level="4">第四關 · 阿努比斯</button>
+          <button class="btn secondary level-tab" data-level="5">第五關 · 拉</button>
+        </div>
+        <div class="small" style="margin-top:10px; opacity:.75">點擊左側關卡按鈕，右側將顯示對應關卡資訊與圖片</div>
+      </div>
+
+      <!-- 右側：關卡內容 -->
+      <div class="panel reveal" id="level-content" style="min-height:280px">
+        <span class="badge">第一關 · 托特</span>
+        <h3 style="margin-top:8px">謎語走廊與石板陷阱</h3>
+        <p>穿越兩座神像的走廊，讀懂底座上的謎語，推理出安全石板的路徑。任何一步踏錯，地面將崩落。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 預告片 -->
+  <section id="trailer" class="container">
+    <h2 class="reveal">預告片</h2>
+    <div class="frame reveal" style="border-radius:16px; overflow:hidden">
+      <!-- TODO: 替換為你的 YouTube 或本地影片路徑 -->
+      <iframe style="width:100%; aspect-ratio:16/9; border:0" src="https://www.youtube.com/watch?v=CDTdJeDRHlM" title="Trailer" allowfullscreen></iframe>
+    </div>
+  </section>
+
+  <!-- 下載 / 聯繫 -->
+  <section id="download" class="container">
+    <h2 class="reveal">下載與聯繫</h2>
+    <p class="reveal"></p>
+    <div class="cta-row reveal">
+      <a class="btn" href="#" target="_blank" rel="noopener">下載 Windows 版</a>
+    </div>
+
+    <!-- 聯絡表單（純前端示範） -->
+    <div class="grid" style="margin-top:26px">
+      <div class="card reveal" style="grid-column:span 7">
+        <h3>聯絡我們</h3>
+        <form id="contact" onsubmit="return sendMsg(event)">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <label>姓名<br><input required name="name" placeholder="你的稱呼" style="width:100%"></label>
+            <label>Email<br><input required type="email" name="email" placeholder="you@example.com" style="width:100%"></label>
+          </div>
+          <label style="display:block; margin-top:12px">訊息<br><textarea required name="msg" rows="5" placeholder="想合作、媒體詢問、Bug 回報…" style="width:100%"></textarea></label>
+          <button class="btn" style="margin-top:12px">送出</button>
+          <div id="notice" class="small" style="margin-top:8px; color:#9fe29f; display:none">已送出（示範）。你可以改寫 sendMsg() 將資料送至表單服務。</div>
+        </form>
+      </div>
+      <div class="card reveal" style="grid-column:span 5">
+        <h3>媒體資源（Press Kit）</h3>
+        <p>包含 Logo、截圖、遊戲簡介、團隊資訊。<br>👉 <a href="#" style="color:var(--accent)">下載 Press Kit</a></p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div style="display:flex; justify-content:center; gap:10px; margin-bottom:8px; color:#ccc">
+        <!-- Horus Eye icon -->
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.8 12s-4.1 5.5-9.8 5.5S2.2 12 2.2 12 6.3 6.5 12 6.5 21.8 12 21.8 12Zm-9.8 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-7.2 3.2c1.2.1 2.1.1 3.4-.2 1.6-.4 2.3-.7 3.9-1.5 1.2-.6 2.5-.8 3.6-.8 1.5 0 2.6.4 4.3 1.1 1.2.5 2.2.8 3.1.9-.7.8-2 1.7-3.6 2.3-1.4.6-2.7.8-4.1.8-1.7 0-3.2-.3-4.8-1-1.8-.7-3.9-1.6-5.8-1.6z"/></svg>
+        <span>金龜子工作室版權所有</span>
+      </div>
+      <div class="small">© <span id="year"></span> ANKH Team. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script>
+    // 年份
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // 滾動揭示動畫
+    const reveal = () => {
+      const els = document.querySelectorAll('.reveal');
+      const h = window.innerHeight;
+      els.forEach(el=>{
+        const r = el.getBoundingClientRect();
+        if(r.top < h - 60) el.classList.add('active');
+      });
+    };
+    reveal();
+    addEventListener('scroll', reveal, {passive:true});
+
+    // 關卡資料與切換（可自行替換 img 路徑）
+    const levelData = {
+      1: { badge:'第一關 · 托特', title:'謎語走廊與石板陷阱', desc:'穿越兩座神像的走廊，讀懂底座上的謎語，推理出安全石板的路徑。任何一步踏錯，地面將崩落。', img:'LV1.png' },
+      2: { badge:'第二關 · 賽特', title:'混沌中的秩序', desc:'風暴與沙塵之神的考驗：打亂的符號必須以逆向思維還原。', img:'LV2.png' },
+      3: { badge:'第三關 · 孔蘇', title:'月鏡路徑', desc:'以反射與遮擋改變光路，讓安卡之光穿越正確的鏡面。', img:'LV3.png' },
+      4: { badge:'第四關 · 阿努比斯', title:'心羽之秤', desc:'重量交換與記憶配對，讓心的重量與瑪亞特之羽達到平衡。', img:'LV4.png' },
+      5: { badge:'第五關 · 拉', title:'最終審視', desc:'多個箱匣的真偽祕密：解讀壁畫線索，開啟通往真相的那一只。', img:'assets/levels/level5.jpg'},
+    };
+
+    const content = document.getElementById('level-content');
+    function renderLevel(id){
+      const d = levelData[id];
+      if(!d) return;
+      const media = d.img ? `
+        <div class="level-media">
+          <img src="${d.img}" alt="${d.badge} 圖片" onerror="this.style.display='none'"/>
+          ${d.caption ? `<div class='caption'>${d.caption}</div>` : ''}
+        </div>` : '';
+      content.innerHTML = `
+        <span class="badge">${d.badge}</span>
+        <h3 style="margin-top:8px">${d.title}</h3>
+        <p>${d.desc}</p>
+        ${media}
+      `;
+    }
+
+    document.querySelectorAll('.level-tab').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('.level-tab').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        renderLevel(btn.dataset.level);
+      })
+    });
+
+    // 預設渲染第一關
+    renderLevel(1);
+
+    // 聯絡表單（示範）
+    function sendMsg(e){
+      e.preventDefault();
+      const notice = document.getElementById('notice');
+      notice.style.display = 'block';
+      e.target.reset();
+      return false;
+    }
+
+    // 平滑捲動
+    document.querySelectorAll('a[href^=\"#\"]').forEach(a=>{
+      a.addEventListener('click', ev=>{
+        const id = a.getAttribute('href');
+        if(id.length > 1){ ev.preventDefault(); document.querySelector(id).scrollIntoView({behavior:'smooth'}); }
+      });
+    });
+  </script>
+</body>
+</html>
